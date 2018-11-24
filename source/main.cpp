@@ -63,8 +63,27 @@ extern ARM_UC_PAAL_UPDATE MBED_CLOUD_CLIENT_UPDATE_STORAGE;
 #endif
 
 #if defined(ARM_UC_USE_PAL_BLOCKDEVICE) && (ARM_UC_USE_PAL_BLOCKDEVICE==1)
+#if defined(COMPONENT_QSPIF)
+#include "QSPIFBlockDevice.h"
+QSPIFBlockDevice sd(MBED_CONF_QSPIF_QSPI_IO0,
+        MBED_CONF_QSPIF_QSPI_IO1,
+        MBED_CONF_QSPIF_QSPI_IO2,
+        MBED_CONF_QSPIF_QSPI_IO3,
+        MBED_CONF_QSPIF_QSPI_SCK,
+        MBED_CONF_QSPIF_QSPI_CSN,
+        MBED_CONF_QSPIF_QSPI_POLARITY_MODE,
+        MBED_CONF_QSPIF_QSPI_FREQ);
+#elif defined(COMPONENT_SPIF)
+#include "SPIFBlockDevice.h"
+SPIFBlockDevice sd(MBED_CONF_SPIF_DRIVER_SPI_MOSI, MBED_CONF_SPIF_DRIVER_SPI_MISO,
+                 MBED_CONF_SPIF_DRIVER_SPI_CLK,  MBED_CONF_SPIF_DRIVER_SPI_CS);
+#else
+#if defined(TARGET_NUVOTON)
+/* initialise sd card blockdevice */
+#include "NuSDBlockDevice.h"
+ NuSDBlockDevice sd;
+#else
 #include "SDBlockDevice.h"
-
 /* initialise sd card blockdevice */
 #if defined(MBED_CONF_APP_SPI_MOSI) && defined(MBED_CONF_APP_SPI_MISO) && \
     defined(MBED_CONF_APP_SPI_CLK)  && defined(MBED_CONF_APP_SPI_CS)
@@ -73,6 +92,8 @@ SDBlockDevice sd(MBED_CONF_APP_SPI_MOSI, MBED_CONF_APP_SPI_MISO,
 #else
 SDBlockDevice sd(MBED_CONF_SD_SPI_MOSI, MBED_CONF_SD_SPI_MISO,
                  MBED_CONF_SD_SPI_CLK,  MBED_CONF_SD_SPI_CS);
+#endif
+#endif
 #endif
 
 BlockDevice *arm_uc_blockdevice = &sd;
