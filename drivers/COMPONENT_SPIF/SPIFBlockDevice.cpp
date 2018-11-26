@@ -151,7 +151,7 @@ int SPIFBlockDevice::init()
         status = SPIF_BD_ERROR_DEVICE_ERROR;
         goto exit_point;
     } else {
-        tr_info("INFO: Initialize flash memory OK\n");
+        //tr_info("INFO: Initialize flash memory OK\n");
     }
 
 
@@ -201,8 +201,8 @@ int SPIFBlockDevice::init()
     _region_high_boundary[0] = _device_size_bytes - 1;
 
     if ( (sector_map_table_addr != 0) && (0 != sector_map_table_size) ) {
-        tr_info("INFO: init - Parsing Sector Map Table - addr: 0x%lxh, Size: %d", sector_map_table_addr,
-                sector_map_table_size);
+        //tr_info("INFO: init - Parsing Sector Map Table - addr: 0x%lxh, Size: %d", sector_map_table_addr,
+        //        sector_map_table_size);
         if (0 != _sfdp_parse_sector_map_table(sector_map_table_addr, sector_map_table_size) ) {
             tr_error("ERROR: init - Parse Sector Map Table Failed");
             status = SPIF_BD_ERROR_PARSING_FAILED;
@@ -259,7 +259,7 @@ int SPIFBlockDevice::read(void *buffer, bd_addr_t addr, bd_size_t size)
     }
 
     int status = SPIF_BD_ERROR_OK;
-    tr_info("INFO Read - Inst: 0x%xh", _read_instruction);
+    //tr_info("INFO Read - Inst: 0x%xh", _read_instruction);
     _mutex->lock();
 
     // Set Dummy Cycles for Specific Read Command Mode
@@ -344,7 +344,7 @@ int SPIFBlockDevice::erase(bd_addr_t addr, bd_size_t in_size)
     // Erase Types of selected region
     uint8_t bitfield = _region_erase_types_bitfield[region];
 
-    tr_info("DEBUG: erase - addr: %llu, in_size: %llu", addr, in_size);
+    //tr_info("DEBUG: erase - addr: %llu, in_size: %llu", addr, in_size);
 
     if ((addr + in_size) > _device_size_bytes) {
         tr_error("ERROR: erase exceeds flash device size");
@@ -549,7 +549,7 @@ spif_bd_error SPIFBlockDevice::_spi_send_program_command(int prog_inst, const vo
 
 spif_bd_error SPIFBlockDevice::_spi_send_erase_command(int erase_inst, bd_addr_t addr, bd_size_t size)
 {
-    tr_info("INFO: Erase Inst: 0x%xh, addr: %llu, size: %llu", erase_inst, addr, size);
+    //tr_info("INFO: Erase Inst: 0x%xh, addr: %llu, size: %llu", erase_inst, addr, size);
     addr = (((int)addr) & 0x00FFF000);
     _spi_send_general_command(erase_inst, addr, NULL, 0, NULL, 0);
     return SPIF_BD_ERROR_OK;
@@ -722,7 +722,7 @@ int SPIFBlockDevice::_sfdp_parse_sfdp_headers(uint32_t& basic_table_addr, size_t
         tr_error("ERROR: init - _verify SFDP signature and version Failed");
         return -1;
     } else {
-        tr_info("INFO: init - verified SFDP Signature and version Successfully");
+        //tr_info("INFO: init - verified SFDP Signature and version Successfully");
     }
 
     // Discover Number of Parameter Headers
@@ -801,8 +801,8 @@ int SPIFBlockDevice::_sfdp_detect_erase_types_inst_and_size(uint8_t *basic_param
             erase_type_inst_arr[i_ind] = 0xff; //0xFF default for unsupported type
             erase_type_size_arr[i_ind] = local_math_power(2,
                                          basic_param_table_ptr[SPIF_BASIC_PARAM_ERASE_TYPE_1_SIZE_BYTE + 2 * i_ind]); // Size given as 2^N
-            tr_info("DEBUG: Erase Type(A) %d - Inst: 0x%xh, Size: %d", (i_ind + 1), erase_type_inst_arr[i_ind],
-                    erase_type_size_arr[i_ind]);
+            //tr_info("DEBUG: Erase Type(A) %d - Inst: 0x%xh, Size: %d", (i_ind + 1), erase_type_inst_arr[i_ind],
+            //        erase_type_size_arr[i_ind]);
             if (erase_type_size_arr[i_ind] > 1) {
                 // if size==1 type is not supported
                 erase_type_inst_arr[i_ind] = basic_param_table_ptr[SPIF_BASIC_PARAM_ERASE_TYPE_1_BYTE + 2 * i_ind];
@@ -825,8 +825,8 @@ int SPIFBlockDevice::_sfdp_detect_erase_types_inst_and_size(uint8_t *basic_param
                 _region_erase_types_bitfield[0] |= bitfield; // If there's no region map, set region "0" types bitfield as defualt;
             }
 
-            tr_info("INFO: Erase Type %d - Inst: 0x%xh, Size: %d", (i_ind + 1), erase_type_inst_arr[i_ind],
-                    erase_type_size_arr[i_ind]);
+            //tr_info("INFO: Erase Type %d - Inst: 0x%xh, Size: %d", (i_ind + 1), erase_type_inst_arr[i_ind],
+            //        erase_type_size_arr[i_ind]);
             bitfield = bitfield << 1;
         }
     }
@@ -853,7 +853,7 @@ int SPIFBlockDevice::_sfdp_detect_best_bus_read_mode(uint8_t *basic_param_table_
         		read_inst = basic_param_table_ptr[SPIF_BASIC_PARAM_TABLE_222_READ_INST_BYTE];
         		_read_dummy_and_mode_cycles = (basic_param_table_ptr[SPIF_BASIC_PARAM_TABLE_222_READ_INST_BYTE - 1] >> 5)
         								 + (basic_param_table_ptr[SPIF_BASIC_PARAM_TABLE_222_READ_INST_BYTE - 1] & 0x1F);
-        		tr_info("\nDEBUG: Read Bus Mode set to 2-2-2, Instruction: 0x%xh", read_inst);
+        		//tr_info("\nDEBUG: Read Bus Mode set to 2-2-2, Instruction: 0x%xh", read_inst);
         		break;
         	}
         }
@@ -887,7 +887,7 @@ int SPIFBlockDevice::_reset_flash_mem()
     // Perform Soft Reset of the Device prior to initialization
     int status = 0;
     char status_value[2] = {0};
-    tr_info("INFO: _reset_flash_mem:\n");
+    //tr_info("INFO: _reset_flash_mem:\n");
     //Read the Status Register from device
     if (SPIF_BD_ERROR_OK == _spi_send_general_command(SPIF_RDSR, SPI_NO_ADDRESS_COMMAND, NULL, 0, status_value, 1) ) {
         // store received values in status_value
