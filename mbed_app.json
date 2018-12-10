@@ -205,6 +205,21 @@
               "PAL_USE_HW_RTC=0",
               "PAL_INT_FLASH_NUM_SECTIONS=2"
             ]
+        },
+        "GR_LYCHEE": {
+            "flash-start-address"              : "0x18000000",
+            "flash-size"                       : "(8*1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS+64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS+65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "sd.SPI_MOSI": "P5_6",
+            "sd.SPI_MISO": "P5_7",
+            "sd.SPI_CLK":  "P5_4",
+            "sd.SPI_CS":   "P5_5"
         }
     }
 }
