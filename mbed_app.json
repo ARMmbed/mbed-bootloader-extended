@@ -1,0 +1,255 @@
+{
+    "macros": [
+        "MBEDTLS_USER_CONFIG_FILE=\"bootloader_mbedtls_user_config.h\"",
+        "SHOW_PROGRESS_BAR=0",
+        "MAX_COPY_RETRIES=1",
+        "MAX_BOOT_RETRIES=3",
+        "ARM_BOOTLOADER_USE_NVSTORE_ROT=1",
+        "ARM_UC_USE_PAL_CRYPTO=0",
+        "ARM_UC_USE_PAL_BLOCKDEVICE=1",
+        "ARM_UC_PAAL_TRACE_ENABLE=0",
+        "ARM_UC_PROFILE_MBED_CLOUD_CLIENT=1",
+        "ARM_UC_FEATURE_CRYPTO_PAL=0",
+        "ARM_UC_FEATURE_CRYPTO_MBEDTLS=1",
+        "MBED_CLOUD_CLIENT_UPDATE_STORAGE=ARM_UCP_FLASHIAP_BLOCKDEVICE",
+        "DEFAULT_MAX_APPLICATION_SIZE=(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - MBED_CONF_APP_APPLICATION_START_ADDRESS)",
+        "DISABLE_ERROR_DESCRIPTION=1",
+        "Mutex=PlatformMutex"
+    ],
+    "config": {
+        "application-start-address": {
+            "help": "Address to the beginning of the active application firmware in flash",
+            "value": null
+        },
+        "application-jump-address": {
+            "help": "Jump address for running the active application firmware",
+            "value": null
+        },
+        "max-application-size": {
+            "help": "Maximum size of the active application",
+            "value": null
+        },
+        "flash-start-address": {
+            "help": "Start address of internal flash. Only used in this config to help the definition of other macros.",
+            "value": null
+        },
+        "flash-size": {
+            "help": "Total size of internal flash. Only used in this config to help the definition of other macros.",
+            "value": null
+        }
+    },
+    "target_overrides": {
+        "*": {
+            "target.features_remove"           : ["LWIP"],
+            "target.features_add"              : ["COMMON_PAL"],
+            "target.extra_labels_remove"       : ["PSA"],
+            "target.components_remove"         : ["FLASHIAP"],
+            "platform.stdio-baud-rate"         : 115200,
+            "platform.stdio-flush-at-exit"     : false,
+            "update-client.storage-address"    : "(1024*1024*64)",
+            "update-client.storage-size"       : "(1024*1024*2)",
+            "update-client.storage-locations"  : 1,
+            "update-client.firmware-header-version": "2"
+        },
+        "K64F": {
+            "flash-start-address"              : "0x0",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "K66F": {
+            "flash-start-address"              : "0x0",
+            "flash-size"                       : "(2048*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "NUCLEO_F429ZI": {
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(2048*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(128*1024))",
+            "nvstore.area_1_size"              : "(128*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(128*1024))",
+            "nvstore.area_2_size"              : "(128*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "sd.SPI_MOSI"                      : "PE_6",
+            "sd.SPI_MISO"                      : "PE_5",
+            "sd.SPI_CLK"                       : "PE_2",
+            "sd.SPI_CS"                        : "PE_4"
+        },
+        "NUCLEO_F767ZI": {
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(2048*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(256*1024))",
+            "nvstore.area_1_size"              : "(256*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(256*1024))",
+            "nvstore.area_2_size"              : "(256*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "sd.SPI_MOSI"                      : "PE_6",
+            "sd.SPI_MISO"                      : "PE_5",
+            "sd.SPI_CLK"                       : "PE_2",
+            "sd.SPI_CS"                        : "PE_4"
+        },
+        "NUCLEO_F746ZG": {
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(256*1024))",
+            "nvstore.area_1_size"              : "(256*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(256*1024))",
+            "nvstore.area_2_size"              : "(256*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "sd.SPI_MOSI"                      : "PE_6",
+            "sd.SPI_MISO"                      : "PE_5",
+            "sd.SPI_CLK"                       : "PE_2",
+            "sd.SPI_CS"                        : "PE_4"
+        },
+        "DISCO_L475VG_IOT01A": {
+            "target.components_add"            : ["QSPIF"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(2*1024))",
+            "nvstore.area_1_size"              : "(2*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(2*1024))",
+            "nvstore.area_2_size"              : "(2*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "update-client.storage-address"    : "(1024*1024*2)",
+            "update-client.storage-size"       : "(1024*1024*2)",
+            "update-client.storage-locations"  : 1,
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "DISCO_F413ZH": {
+            "target.components_add"            : ["QSPIF"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1536*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(128*1024))",
+            "nvstore.area_1_size"              : "(128*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(128*1024))",
+            "nvstore.area_2_size"              : "(128*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS+64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS+65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "update-client.storage-address"    : "(1024*1024*2)",
+            "update-client.storage-size"       : "(1024*1024*2)",
+            "update-client.storage-locations"  : 1
+        },
+        "NUMAKER_PFM_NUC472": {
+            "drivers.uart-serial-rxbuf-size"   : 1024,
+            "drivers.uart-serial-txbuf-size"   : 1024,
+            "flash-start-address"              : "0x0",
+            "flash-size"                       : "(512*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "NUMAKER_PFM_M487": {
+            "drivers.uart-serial-rxbuf-size"   : 1024,
+            "drivers.uart-serial-txbuf-size"   : 1024,
+            "flash-start-address"              : "0x0",
+            "flash-size"                       : "(512*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "NUMAKER_IOT_M487": {
+            "drivers.uart-serial-rxbuf-size"   : 1024,
+            "drivers.uart-serial-txbuf-size"   : 1024,
+            "flash-start-address"              : "0x0",
+            "flash-size"                       : "(512*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "UBLOX_EVK_ODIN_W2": {
+            "target.device_has_remove"         : ["EMAC"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(2048*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(128*1024))",
+            "nvstore.area_1_size"              : "(128*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(128*1024))",
+            "nvstore.area_2_size"              : "(128*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "UBLOX_C030_U201": {
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(128*1024))",
+            "nvstore.area_1_size"              : "(128*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(128*1024))",
+            "nvstore.area_2_size"              : "(128*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
+        "MTB_MXCHIP_EMW3166": {
+            "target.extra_labels_remove"       : ["WICED"],
+            "target.components_add"            : ["SPIF"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + 48*1024)",
+            "nvstore.area_1_size"              : "(16*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "nvstore.area_2_size"              : "(16*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 128*1024)",
+            "update-client.storage-address"    : "(1024*1024*2)",
+            "update-client.storage-size"       : "(1024*1024*1)",
+            "update-client.storage-locations"  : 1,
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 129*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "spif-driver.SPI_MOSI"             : "PB_15",
+            "spif-driver.SPI_MISO"             : "PB_14",
+            "spif-driver.SPI_CLK"              : "PB_13",
+            "spif-driver.SPI_CS"               : "PA_10"
+        },
+        "MTB_USI_WM_BN_BM_22": {
+            "target.extra_labels_remove"       : ["WICED"],
+            "target.components_add"            : ["SPIF"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + 48*1024)",
+            "nvstore.area_1_size"              : "(16*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "nvstore.area_2_size"              : "(16*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 128*1024)",
+            "update-client.storage-address"    : "(1024*1024*2)",
+            "update-client.storage-size"       : "(1024*1024*1)",
+            "update-client.storage-locations"  : 1,
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 129*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "spif-driver.SPI_MOSI"             : "PC_3",
+            "spif-driver.SPI_MISO"             : "PC_2",
+            "spif-driver.SPI_CLK"              : "PB_13",
+            "spif-driver.SPI_CS"               : "PA_6"
+        }
+
+    }
+}
