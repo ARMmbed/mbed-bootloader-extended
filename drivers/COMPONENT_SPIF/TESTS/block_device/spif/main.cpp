@@ -16,7 +16,7 @@
 #include "greentea-client/test_env.h"
 #include "unity.h"
 #include "utest.h"
-#include "QSPIFBlockDevice.h"
+#include "SPIFBlockDevice.h"
 #include "mbed_trace.h"
 #include "rtos/Thread.h"
 #include <stdlib.h>
@@ -25,7 +25,7 @@ using namespace utest::v1;
 
 #define TEST_BLOCK_COUNT 10
 #define TEST_ERROR_MASK 16
-#define QSPIF_TEST_NUM_OF_THREADS 5
+#define SPIF_TEST_NUM_OF_THREADS 5
 
 const struct {
     const char *name;
@@ -39,21 +39,16 @@ const struct {
 
 static SingletonPtr<PlatformMutex> _mutex;
 
-
 // Mutex is protecting rand() per srand for buffer writing and verification.
 // Mutex is also protecting printouts for clear logs.
 // Mutex is NOT protecting Block Device actions: erase/program/read - which is the purpose of the multithreaded test!
-void basic_erase_program_read_test(QSPIFBlockDevice &blockD, bd_size_t block_size, uint8_t *write_block,
+void basic_erase_program_read_test(SPIFBlockDevice &block_device, bd_size_t block_size, uint8_t *write_block,
                                    uint8_t *read_block, unsigned addrwidth)
 {
     int err = 0;
     _mutex->lock();
-
-    static unsigned block_seed = 1;
-    srand(block_seed++);
-
     // Find a random block
-    bd_addr_t block = (rand() * block_size) % blockD.size();
+    bd_addr_t block = (rand() * block_size) % block_device.size();
 
     // Use next random number as temporary seed to keep
     // the address progressing in the pseudorandom sequence
@@ -68,13 +63,13 @@ void basic_erase_program_read_test(QSPIFBlockDevice &blockD, bd_size_t block_siz
     utest_printf("\ntest  %0*llx:%llu...", addrwidth, block, block_size);
     _mutex->unlock();
 
-    err = blockD.erase(block, block_size);
+    err = block_device.erase(block, block_size);
     TEST_ASSERT_EQUAL(0, err);
 
-    err = blockD.program(write_block, block, block_size);
+    err = block_device.program(write_block, block, block_size);
     TEST_ASSERT_EQUAL(0, err);
 
-    err = blockD.read(read_block, block, block_size);
+    err = block_device.read(read_block, block, block_size);
     TEST_ASSERT_EQUAL(0, err);
 
     _mutex->lock();
@@ -93,20 +88,21 @@ void basic_erase_program_read_test(QSPIFBlockDevice &blockD, bd_size_t block_siz
     _mutex->unlock();
 }
 
-void test_qspif_random_program_read_erase()
+void test_spif_random_program_read_erase()
 {
     utest_printf("\nTest Random Program Read Erase Starts..\n");
 
-    QSPIFBlockDevice blockD(QSPI_FLASH1_IO0, QSPI_FLASH1_IO1, QSPI_FLASH1_IO2, QSPI_FLASH1_IO3,
-                            QSPI_FLASH1_SCK, QSPI_FLASH1_CSN, QSPIF_POLARITY_MODE_0, MBED_CONF_QSPIF_QSPI_FREQ);
+    SPIFBlockDevice block_device(MBED_CONF_SPIF_DRIVER_SPI_MOSI, MBED_CONF_SPIF_DRIVER_SPI_MISO,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CLK,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CS);
 
-    int err = blockD.init();
+    int err = block_device.init();
     TEST_ASSERT_EQUAL(0, err);
 
     for (unsigned atr = 0; atr < sizeof(ATTRS) / sizeof(ATTRS[0]); atr++) {
         static const char *prefixes[] = {"", "k", "M", "G"};
         for (int i_ind = 3; i_ind >= 0; i_ind--) {
-            bd_size_t size = (blockD.*ATTRS[atr].method)();
+            bd_size_t size = (block_device.*ATTRS[atr].method)();
             if (size >= (1ULL << 10 * i_ind)) {
                 utest_printf("%s: %llu%sbytes (%llubytes)\n",
                              ATTRS[atr].name, size >> 10 * i_ind, prefixes[i_ind], size);
@@ -115,8 +111,8 @@ void test_qspif_random_program_read_erase()
         }
     }
 
-    bd_size_t block_size = blockD.get_erase_size();
-    unsigned addrwidth = ceil(log(float(blockD.size() - 1)) / log(float(16))) + 1;
+    bd_size_t block_size = block_device.get_erase_size();
+    unsigned addrwidth = ceil(log(float(block_device.size() - 1)) / log(float(16))) + 1;
 
     uint8_t *write_block = new (std::nothrow) uint8_t[block_size];
     uint8_t *read_block = new (std::nothrow) uint8_t[block_size];
@@ -126,10 +122,10 @@ void test_qspif_random_program_read_erase()
     }
 
     for (int b = 0; b < TEST_BLOCK_COUNT; b++) {
-        basic_erase_program_read_test(blockD, block_size, write_block, read_block, addrwidth);
+        basic_erase_program_read_test(block_device, block_size, write_block, read_block, addrwidth);
     }
 
-    err = blockD.deinit();
+    err = block_device.deinit();
     TEST_ASSERT_EQUAL(0, err);
 
 end:
@@ -137,21 +133,21 @@ end:
     delete[] read_block;
 }
 
-void test_qspif_unaligned_erase()
+void test_spif_unaligned_erase()
 {
-
     utest_printf("\nTest Unaligned Erase Starts..\n");
 
-    QSPIFBlockDevice blockD(QSPI_FLASH1_IO0, QSPI_FLASH1_IO1, QSPI_FLASH1_IO2, QSPI_FLASH1_IO3,
-                            QSPI_FLASH1_SCK, QSPI_FLASH1_CSN, QSPIF_POLARITY_MODE_0, MBED_CONF_QSPIF_QSPI_FREQ);
+    SPIFBlockDevice block_device(MBED_CONF_SPIF_DRIVER_SPI_MOSI, MBED_CONF_SPIF_DRIVER_SPI_MISO,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CLK,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CS);
 
-    int err = blockD.init();
+    int err = block_device.init();
     TEST_ASSERT_EQUAL(0, err);
 
     for (unsigned atr = 0; atr < sizeof(ATTRS) / sizeof(ATTRS[0]); atr++) {
         static const char *prefixes[] = {"", "k", "M", "G"};
         for (int i_ind = 3; i_ind >= 0; i_ind--) {
-            bd_size_t size = (blockD.*ATTRS[atr].method)();
+            bd_size_t size = (block_device.*ATTRS[atr].method)();
             if (size >= (1ULL << 10 * i_ind)) {
                 utest_printf("%s: %llu%sbytes (%llubytes)\n",
                              ATTRS[atr].name, size >> 10 * i_ind, prefixes[i_ind], size);
@@ -161,54 +157,52 @@ void test_qspif_unaligned_erase()
     }
 
     bd_addr_t addr = 0;
-    bd_size_t sector_erase_size = blockD.get_erase_size(addr);
-    unsigned addrwidth = ceil(log(float(blockD.size() - 1)) / log(float(16))) + 1;
+    bd_size_t sector_erase_size = block_device.get_erase_size(addr);
+    unsigned addrwidth = ceil(log(float(block_device.size() - 1)) / log(float(16))) + 1;
 
     utest_printf("\ntest  %0*llx:%llu...", addrwidth, addr, sector_erase_size);
 
     //unaligned start address
     addr += 1;
-    err = blockD.erase(addr, sector_erase_size - 1);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, sector_erase_size - 1);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
-    err = blockD.erase(addr, sector_erase_size);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, sector_erase_size);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
-    err = blockD.erase(addr, 1);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, 1);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
     //unaligned end address
     addr = 0;
 
-    err = blockD.erase(addr, 1);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, 1);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
-    err = blockD.erase(addr, sector_erase_size + 1);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, sector_erase_size + 1);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
     //erase size exceeds flash device size
-    err = blockD.erase(addr, blockD.size() + 1);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
+    err = block_device.erase(addr, block_device.size() + 1);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_INVALID_ERASE_PARAMS, err);
 
     // Valid erase
-    err = blockD.erase(addr, sector_erase_size);
-    TEST_ASSERT_EQUAL(QSPIF_BD_ERROR_OK, err);
+    err = block_device.erase(addr, sector_erase_size);
+    TEST_ASSERT_EQUAL(SPIF_BD_ERROR_OK, err);
 
-    err = blockD.deinit();
+    err = block_device.deinit();
     TEST_ASSERT_EQUAL(0, err);
 }
 
-
-
-static void test_qspif_thread_job(void *vBlockD/*, int thread_num*/)
+static void test_spif_thread_job(void *block_device_ptr/*, int thread_num*/)
 {
     static int thread_num = 0;
     thread_num++;
-    QSPIFBlockDevice *blockD = (QSPIFBlockDevice *)vBlockD;
+    SPIFBlockDevice *block_device = (SPIFBlockDevice *)block_device_ptr;
     utest_printf("\n Thread %d Started \n", thread_num);
 
-    bd_size_t block_size = blockD->get_erase_size();
-    unsigned addrwidth = ceil(log(float(blockD->size() - 1)) / log(float(16))) + 1;
+    bd_size_t block_size = block_device->get_erase_size();
+    unsigned addrwidth = ceil(log(float(block_device->size() - 1)) / log(float(16))) + 1;
 
     uint8_t *write_block = new (std::nothrow) uint8_t[block_size];
     uint8_t *read_block = new (std::nothrow) uint8_t[block_size];
@@ -218,7 +212,7 @@ static void test_qspif_thread_job(void *vBlockD/*, int thread_num*/)
     }
 
     for (int b = 0; b < TEST_BLOCK_COUNT; b++) {
-        basic_erase_program_read_test((*blockD), block_size, write_block, read_block, addrwidth);
+        basic_erase_program_read_test((*block_device), block_size, write_block, read_block, addrwidth);
     }
 
 end:
@@ -226,21 +220,21 @@ end:
     delete[] read_block;
 }
 
-void test_qspif_multi_threads()
+void test_spif_multi_threads()
 {
-
     utest_printf("\nTest Multi Threaded Erase/Program/Read Starts..\n");
 
-    QSPIFBlockDevice blockD(QSPI_FLASH1_IO0, QSPI_FLASH1_IO1, QSPI_FLASH1_IO2, QSPI_FLASH1_IO3,
-                            QSPI_FLASH1_SCK, QSPI_FLASH1_CSN, QSPIF_POLARITY_MODE_0, MBED_CONF_QSPIF_QSPI_FREQ);
+    SPIFBlockDevice block_device(MBED_CONF_SPIF_DRIVER_SPI_MOSI, MBED_CONF_SPIF_DRIVER_SPI_MISO,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CLK,
+                                 MBED_CONF_SPIF_DRIVER_SPI_CS);
 
-    int err = blockD.init();
+    int err = block_device.init();
     TEST_ASSERT_EQUAL(0, err);
 
     for (unsigned atr = 0; atr < sizeof(ATTRS) / sizeof(ATTRS[0]); atr++) {
         static const char *prefixes[] = {"", "k", "M", "G"};
         for (int i_ind = 3; i_ind >= 0; i_ind--) {
-            bd_size_t size = (blockD.*ATTRS[atr].method)();
+            bd_size_t size = (block_device.*ATTRS[atr].method)();
             if (size >= (1ULL << 10 * i_ind)) {
                 utest_printf("%s: %llu%sbytes (%llubytes)\n",
                              ATTRS[atr].name, size >> 10 * i_ind, prefixes[i_ind], size);
@@ -249,28 +243,25 @@ void test_qspif_multi_threads()
         }
     }
 
-    rtos::Thread qspif_bd_thread[QSPIF_TEST_NUM_OF_THREADS];
+    rtos::Thread spif_bd_thread[SPIF_TEST_NUM_OF_THREADS];
 
     osStatus threadStatus;
     int i_ind;
 
-    for (i_ind = 0; i_ind < QSPIF_TEST_NUM_OF_THREADS; i_ind++) {
-        threadStatus = qspif_bd_thread[i_ind].start(test_qspif_thread_job, (void *)&blockD);
+    for (i_ind = 0; i_ind < SPIF_TEST_NUM_OF_THREADS; i_ind++) {
+        threadStatus = spif_bd_thread[i_ind].start(test_spif_thread_job, (void *)&block_device);
         if (threadStatus != 0) {
             utest_printf("\n Thread %d Start Failed!", i_ind + 1);
         }
     }
 
-    for (i_ind = 0; i_ind < QSPIF_TEST_NUM_OF_THREADS; i_ind++) {
-        qspif_bd_thread[i_ind].join();
+    for (i_ind = 0; i_ind < SPIF_TEST_NUM_OF_THREADS; i_ind++) {
+        spif_bd_thread[i_ind].join();
     }
 
-    err = blockD.deinit();
+    err = block_device.deinit();
     TEST_ASSERT_EQUAL(0, err);
 }
-
-
-
 
 // Test setup
 utest::v1::status_t test_setup(const size_t number_of_cases)
@@ -280,13 +271,12 @@ utest::v1::status_t test_setup(const size_t number_of_cases)
 }
 
 Case cases[] = {
-    Case("Testing unaligned erase blocks", test_qspif_unaligned_erase),
-    Case("Testing read write random blocks", test_qspif_random_program_read_erase),
-    Case("Testing Multi Threads Erase Program Read", test_qspif_multi_threads)
+    Case("Testing unaligned erase blocks", test_spif_unaligned_erase),
+    Case("Testing read write random blocks", test_spif_random_program_read_erase),
+    Case("Testing Multi Threads Erase Program Read", test_spif_multi_threads)
 };
 
 Specification specification(test_setup, cases);
-
 
 int main()
 {
