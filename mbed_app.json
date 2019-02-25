@@ -336,6 +336,26 @@
             "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
             "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
         },
+        "RZ_A1H": {
+            "target.components_add"            : ["SD"],
+            "sd.SPI_MOSI"                      : "P8_5",
+            "sd.SPI_MISO"                      : "P8_6",
+            "sd.SPI_CLK"                       : "P8_3",
+            "sd.SPI_CS"                        : "P8_4",
+            "flash-start-address"              : "0x18000000",
+            "flash-size"                       : "(8*1024*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(4*1024))",
+            "nvstore.area_1_size"              : "(4*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(4*1024))",
+            "nvstore.area_2_size"              : "(4*1024)",
+            "update-client.storage-address"    : "(64*1024*1024)",
+            "update-client.storage-size"       : "(2*1024*1024)",
+            "update-client.storage-locations"  : 1,
+            "update-client.firmware-header-version": "2",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE"
+        },
         "UBLOX_EVK_ODIN_W2": {
             "target.components_add"            : ["SD"],
             "target.device_has_remove"         : ["EMAC"],
