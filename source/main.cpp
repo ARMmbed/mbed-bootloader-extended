@@ -43,6 +43,10 @@
 #include "firmware_update_test.h"
 #endif
 
+#if defined(TARGET_WIO_3G) || defined(TARGET_WIO_BG96)
+DigitalOut SD_POWER(PA_15, 1);
+#endif
+
 const arm_uc_installer_details_t bootloader = {
     .arm_hash = BOOTLOADER_ARM_SOURCE_HASH,
     .oem_hash = BOOTLOADER_OEM_SOURCE_HASH,

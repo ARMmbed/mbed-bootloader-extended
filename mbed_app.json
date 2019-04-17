@@ -47,6 +47,27 @@
             "platform.stdio-baud-rate"         : 115200,
             "platform.stdio-flush-at-exit"     : false
         },
+        "WIO_3G": {
+            "target.device_has_remove"         : ["SERIAL_FC"],
+            "target.components_add"            : ["SD"],
+            "flash-start-address"              : "0x08000000",
+            "flash-size"                       : "(2048*1024)",
+            "nvstore.area_1_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 2*(128*1024))",
+            "nvstore.area_1_size"              : "(128*1024)",
+            "nvstore.area_2_address"           : "(MBED_CONF_APP_FLASH_START_ADDRESS + MBED_CONF_APP_FLASH_SIZE - 1*(128*1024))",
+            "nvstore.area_2_size"              : "(128*1024)",
+            "update-client.application-details": "(MBED_CONF_APP_FLASH_START_ADDRESS + 64*1024)",
+            "update-client.storage-address"    : "(1024*1024*64)",
+            "update-client.storage-size"       : "(1024*1024*2)",
+            "update-client.storage-locations"  : 1,
+            "update-client.firmware-header-version": "2",
+            "application-start-address"        : "(MBED_CONF_APP_FLASH_START_ADDRESS + 65*1024)",
+            "max-application-size"             : "DEFAULT_MAX_APPLICATION_SIZE",
+            "sd.SPI_MOSI"                      : "PC_12",
+            "sd.SPI_MISO"                      : "PC_11",
+            "sd.SPI_CLK"                       : "PC_10",
+            "sd.SPI_CS"                        : "PD_0"
+        },
         "K64F": {
             "target.components_add"            : ["SD"],
             "flash-start-address"              : "0x0",
